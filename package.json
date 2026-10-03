@@ -1,0 +1,18 @@
+{
+  "name": "workspace-integrado",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build:api && node dev-server.mjs",
+    "build:api": "node clean-local-build.mjs && tsc --noEmit false --outDir .cache/local-build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3"
+  }
+}

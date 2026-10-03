@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111317">
+  <meta name="description" content="Formulário de inscrição da oficina Workspace Integrado, organizando projetos e alinhando negócios com o Notion.">
+  <title>Inscrição na oficina | Workspace Integrado</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#formulario">Pular para o formulário</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img class="ifba-logo" src="/assets/ifba-logo-horizontal-completa-branca.png" alt="Instituto Federal de Educação, Ciência e Tecnologia da Bahia" width="160" height="42">
+        <span class="brand-divider" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <strong>Workspace Integrado</strong>
+          <span>Oficina com Notion</span>
+        </span>
+      </div>
+      <span class="header-label">Formulário de inscrição</span>
+    </div>
+  </header>
+
+  <div class="page-stage">
+    <main class="main-layout" id="inicio">
+      <section class="intro" aria-labelledby="page-title" data-reveal>
+        <p class="eyebrow">Inscrição na oficina</p>
+        <h1 id="page-title">Workspace <span>Integrado</span></h1>
+        <p class="intro-lead">Organizando Projetos e Alinhando Negócios com o Notion</p>
+        <div class="intro-rule" aria-hidden="true"></div>
+        <p class="project-context">Uma oficina desenvolvida por estudantes do curso de Sistemas de Informação do IFBA para estudantes da UESB.</p>
+        <p class="project-detail">Trabalho da disciplina Organização, Sistemas e Métodos.</p>
+      </section>
+
+      <section class="form-panel" id="formulario" aria-labelledby="form-title" data-reveal>
+        <div class="panel-heading">
+          <p class="panel-eyebrow">Inscrição</p>
+          <h2 id="form-title">Preencha seus dados</h2>
+          <p>Informe seus dados e avalie a oficina.</p>
+        </div>
+
+        <form class="registration-form" id="registration-form" action="/api/inscricoes" method="post" novalidate>
+          <div class="fields-grid">
+            <div class="form-field">
+              <label for="full-name">Nome completo <span class="required-mark" aria-hidden="true">*</span><span class="sr-only"> (obrigatório)</span></label>
+              <input class="text-input" id="full-name" name="name" type="text" autocomplete="name" placeholder="Seu nome completo" minlength="2" required>
+            </div>
+
+            <div class="form-field">
+              <label for="email">E-mail <span class="required-mark" aria-hidden="true">*</span><span class="sr-only"> (obrigatório)</span></label>
+              <input class="text-input" id="email" name="email" type="email" autocomplete="email" placeholder="seuemail@exemplo.com" required>
+            </div>
+
+            <div class="form-field">
+              <label for="cpf">CPF <span class="required-mark" aria-hidden="true">*</span><span class="sr-only"> (obrigatório)</span></label>
+              <input class="text-input" id="cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" aria-describedby="cpf-hint" required>
+              <small class="field-hint" id="cpf-hint">Formato: 000.000.000-00</small>
+            </div>
+
+            <div class="form-field">
+              <label for="phone">Celular <span class="required-mark" aria-hidden="true">*</span><span class="sr-only"> (obrigatório)</span></label>
+              <input class="text-input" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" maxlength="15" pattern="\(\d{2}\) \d{4,5}-\d{4}" aria-describedby="phone-hint" required>
+              <small class="field-hint" id="phone-hint">Formato: (00) 00000-0000</small>
+            </div>
+          </div>
+
+          <fieldset class="rating-field" id="rating-field">
+            <legend>Avaliação da oficina <span class="required-mark" aria-hidden="true">*</span><span class="sr-only"> (obrigatória)</span>, de 0 a 5</legend>
+            <div class="rating-options">
+              <label class="rating-choice">
+                <input type="radio" name="rating" value="0" required>
+                <span class="rating-number" aria-hidden="true">0</span>
+                <span class="sr-only">Nota 0</span>
+              </label>
+              <label class="rating-choice">
+                <input type="radio" name="rating" value="1" required>
+                <span class="rating-number" aria-hidden="true">1</span>
+                <span class="sr-only">Nota 1</span>
+              </label>
+              <label class="rating-choice">
+                <input type="radio" name="rating" value="2" required>
+                <span class="rating-number" aria-hidden="true">2</span>
+                <span class="sr-only">Nota 2</span>
+              </label>
+              <label class="rating-choice">
+                <input type="radio" name="rating" value="3" required>
+                <span class="rating-number" aria-hidden="true">3</span>
+                <span class="sr-only">Nota 3</span>
+              </label>
+              <label class="rating-choice">
+                <input type="radio" name="rating" value="4" required>
+                <span class="rating-number" aria-hidden="true">4</span>
+                <span class="sr-only">Nota 4</span>
+              </label>
+              <label class="rating-choice">
+                <input type="radio" name="rating" value="5" required>
+                <span class="rating-number" aria-hidden="true">5</span>
+                <span class="sr-only">Nota 5</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <p class="form-feedback" id="form-feedback" role="status" aria-live="polite" hidden></p>
+          <p class="setup-note" id="setup-note" role="status" aria-live="polite">O envio está indisponível no momento. Nenhum dado foi enviado.</p>
+
+          <p class="form-note">Uma resposta por CPF.</p>
+
+          <button class="submit-button" id="submit-button" type="submit" disabled>
+            <span>Enviar inscrição</span>
+            <span class="button-spinner" aria-hidden="true"></span>
+          </button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer" data-reveal>
+      <div class="footer-inner">
+        <span>Workspace Integrado</span>
+        <span>Organizando Projetos e Alinhando Negócios com o Notion</span>
+        <nav class="legal-links" id="legal-links" aria-label="Informações legais" hidden>
+          <a id="terms-link" target="_blank" rel="noopener noreferrer">Termos de Uso</a>
+          <a id="privacy-link" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>
+        </nav>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/app.js" defer></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4489dea2e23ef86',t:'MTc5MDk5NTU5MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
