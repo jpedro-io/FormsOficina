@@ -34,6 +34,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
   }
 
   const databaseUrl = process.env.DATABASE_URL?.trim();
+  const cronSecret = process.env.CRON_SECRET?.trim() ?? "";
+  if (!cronSecret) {
+    res.status(200).json({ ok: true, skipped: true });
+    return;
+  }
   if (!authorized(req)) {
     res.status(401).json({ ok: false });
     return;

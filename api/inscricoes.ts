@@ -60,22 +60,6 @@ function clientAddress(req: ApiRequest): string {
   return "unknown";
 }
 
-function validLegalUrl(value: string | undefined): boolean {
-  if (!value) return false;
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === "https:"
-      && !parsed.username
-      && !parsed.password;
-  } catch {
-    return false;
-  }
-}
-
-function isLocalDevelopment(): boolean {
-  return process.env.APP_ENV === "local" && process.env.VERCEL !== "1";
-}
-
 function validCpf(cpf: string): boolean {
   if (!/^\d{11}$/.test(cpf) || /^([0-9])\1{10}$/.test(cpf)) return false;
 
@@ -171,16 +155,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
   const rateLimitSecret = Buffer.byteLength(configuredRateSecret, "utf8") >= 32
     ? configuredRateSecret
     : databaseUrl ?? "";
-  const cronSecret = process.env.CRON_SECRET ?? "";
-  const legalNoticeReady = validLegalUrl(process.env.TERMS_OF_USE_URL)
-    && validLegalUrl(process.env.PRIVACY_POLICY_URL);
-  const productionConfigReady = isLocalDevelopment()
-    || (Buffer.byteLength(cronSecret, "utf8") >= 32 && legalNoticeReady);
-  if (
-    !databaseUrl
-    || Buffer.byteLength(rateLimitSecret, "utf8") < 32
-    || !productionConfigReady
-  ) {
+  if (!databaseUrl || Buffer.byteLength(rateLimitSecret, "utf8") < 32) {
     reply(res, 503, { ok: false, message: "O envio não está disponível no momento. Tente novamente mais tarde." });
     return;
   }

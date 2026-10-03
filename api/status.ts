@@ -30,18 +30,6 @@ function sameOrigin(req: ApiRequest): boolean {
   }
 }
 
-function legalUrl(value: string | undefined): string | null {
-  if (!value) return null;
-  try {
-    const parsed = new URL(value);
-    if (parsed.protocol !== "https:") return null;
-    if (parsed.username || parsed.password) return null;
-    return parsed.href;
-  } catch {
-    return null;
-  }
-}
-
 function isLocalDevelopment(): boolean {
   return process.env.APP_ENV === "local" && process.env.VERCEL !== "1";
 }
@@ -66,22 +54,13 @@ export default function handler(req: ApiRequest, res: ApiResponse): void {
   const rateLimitSecret = Buffer.byteLength(configuredRateSecret, "utf8") >= 32
     ? configuredRateSecret
     : databaseUrl ?? "";
-  const cronSecret = process.env.CRON_SECRET ?? "";
-  const termsUrl = legalUrl(process.env.TERMS_OF_USE_URL);
-  const privacyUrl = legalUrl(process.env.PRIVACY_POLICY_URL);
-  const localDevelopment = isLocalDevelopment();
-  const productionConfigReady = localDevelopment
-    || (Buffer.byteLength(cronSecret, "utf8") >= 32 && termsUrl !== null && privacyUrl !== null);
   const ready = Boolean(
     databaseUrl
     && Buffer.byteLength(rateLimitSecret, "utf8") >= 32
-    && productionConfigReady
   );
 
   res.status(200).json({
     ready,
-    localDevelopment,
-    termsUrl: ready ? termsUrl : null,
-    privacyUrl: ready ? privacyUrl : null
+    localDevelopment: isLocalDevelopment()
   });
 }

@@ -8,9 +8,6 @@ const cpfInput = document.querySelector("#cpf");
 const phoneInput = document.querySelector("#phone");
 const ratingField = document.querySelector("#rating-field");
 const setupNote = document.querySelector("#setup-note");
-const legalLinks = document.querySelector("#legal-links");
-const termsLink = document.querySelector("#terms-link");
-const privacyLink = document.querySelector("#privacy-link");
 let submissionReady = false;
 
 function digitsOnly(value, maxLength) {
@@ -95,20 +92,10 @@ async function loadSubmissionStatus() {
       headers: { "Accept": "application/json" }
     });
     const status = await response.json().catch(() => null);
-    const hasLegalLinks = Boolean(status
-      && typeof status.termsUrl === "string"
-      && typeof status.privacyUrl === "string");
     const localDevelopment = status?.localDevelopment === true;
 
-    submissionReady = Boolean(response.ok && status?.ready === true && (localDevelopment || hasLegalLinks));
+    submissionReady = Boolean(response.ok && status?.ready === true);
     if (submissionReady) {
-      if (hasLegalLinks) {
-        termsLink.href = status.termsUrl;
-        privacyLink.href = status.privacyUrl;
-        legalLinks.hidden = false;
-      } else {
-        legalLinks.hidden = true;
-      }
       if (localDevelopment) {
         setupNote.textContent = "Modo local de desenvolvimento. Envios válidos serão gravados no banco configurado.";
         setupNote.hidden = false;

@@ -564,24 +564,6 @@
       letter-spacing: .02em;
     }
 
-    .legal-links {
-      display: inline-flex;
-      align-items: center;
-      gap: 16px;
-      font-size: 11px;
-    }
-
-    .legal-links a {
-      color: rgba(255, 255, 255, .9);
-      text-decoration-thickness: 1px;
-      text-underline-offset: 3px;
-    }
-
-    .legal-links a:focus-visible {
-      outline: 2px solid #fff;
-      outline-offset: 3px;
-    }
-
     [hidden] {
       display: none !important;
     }
