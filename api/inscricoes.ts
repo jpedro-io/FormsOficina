@@ -13,7 +13,7 @@ type SignupInput = {
   email: string;
   cpf: string;
   phone: string;
-  rating: number; // <- Voltamos com o rating aqui
+  rating: number;
 };
 
 const MAX_BODY_BYTES = 5_000;
@@ -110,7 +110,6 @@ function normalizeInput(value: unknown): SignupInput | null {
   if (!validCpf(cpf)) return null;
   if (!/^\d{10,11}$/.test(phone)) return null;
 
-  // Injetamos a nota 5 automaticamente para o banco de dados
   return { name, email, cpf, phone, rating: 5 };
 }
 
@@ -208,4 +207,48 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
       VALUES (${bucketHash}, now(), 1)
       ON CONFLICT (bucket_hash) DO UPDATE
       SET request_count = CASE
-          WHEN current_window.window_started_at
+          WHEN current_window.window_started_at <= now() - interval '1 minute' THEN 1
+          ELSE LEAST(current_window.request_count + 1, ${MAX_WINDOW_COUNT})
+        END,
+        window_started_at = CASE
+          WHEN current_window.window_started_at <= now() - interval '1 minute' THEN now()
+          ELSE current_window.window_started_at
+        END
+      RETURNING request_count
+    `;
+
+    if (Number(rateRows[0]?.request_count) > REQUESTS_PER_MINUTE) {
+      reply(res, 429, { ok: false, message: "Muitas tentativas em pouco tempo. Aguarde e tente novamente." });
+      return;
+    }
+
+    const parsedBody = parseBody(req);
+    if (!parsedBody) {
+      reply(res, 400, { ok: false, message: "Confira os dados e tente novamente." });
+      return;
+    }
+
+    const input = normalizeInput(parsedBody);
+    if (!input) {
+      reply(res, 422, { ok: false, message: "Confira os dados e tente novamente." });
+      return;
+    }
+
+    const insertedRows = await sql`
+      INSERT INTO public.workshop_signups (name, email, cpf, phone, rating)
+      VALUES (${input.name}, ${input.email}, ${input.cpf}, ${input.phone}, ${input.rating})
+      ON CONFLICT (cpf) DO NOTHING
+      RETURNING id
+    `;
+
+    if (insertedRows.length === 0) {
+      reply(res, 409, { ok: false, message: "Este CPF já possui uma resposta registrada." });
+      return;
+    }
+
+    reply(res, 201, { ok: true });
+  } catch (err: unknown) {
+    const errorDetails = err instanceof Error ? err.message : String(err);
+    reply(res, 500, { ok: false, message: `Erro detalhado: ${errorDetails}` });
+  }
+}
