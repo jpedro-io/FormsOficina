@@ -21,7 +21,10 @@ const MAX_WINDOW_COUNT = REQUESTS_PER_MINUTE + 1;
 
 function header(req: ApiRequest, name: string): string | undefined {
   const value = req.headers[name.toLowerCase()];
-  return Array.isArray(value) ? value[0] : value;
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  return value;
 }
 
 function reply(res: ApiResponse, status: number, body: Record<string, unknown>): void {
@@ -37,7 +40,12 @@ function isSameOrigin(req: ApiRequest): boolean {
     const secureOrigin = parsedOrigin.protocol === "https:";
     const localDevelopmentOrigin = parsedOrigin.protocol === "http:"
       && ["localhost", "127.0.0.1", "[::1]"].includes(parsedOrigin.hostname);
-    if (!secureOrigin && !localDevelopmentOrigin) return false;
+
+    if (!secureOrigin) {
+      if (!localDevelopmentOrigin) {
+        return false;
+      }
+    }
 
     const configuredOrigin = process.env.PUBLIC_SITE_ORIGIN?.trim();
     if (configuredOrigin) {
@@ -45,22 +53,29 @@ function isSameOrigin(req: ApiRequest): boolean {
     }
 
     const requestHost = header(req, "host");
-    return Boolean(requestHost) && parsedOrigin.host.toLowerCase() === requestHost?.toLowerCase();
+    if (!requestHost) return false;
+    return parsedOrigin.host.toLowerCase() === requestHost.toLowerCase();
   } catch {
     return false;
   }
 }
 
 function clientAddress(req: ApiRequest): string {
-  const forwarded = (header(req, "x-vercel-forwarded-for") ?? header(req, "x-forwarded-for"))
-    ?.split(",")[0]
-    ?.trim();
-  if (forwarded && forwarded.length <= 64) return forwarded;
+  const forwardedVercel = header(req, "x-vercel-forwarded-for");
+  const forwarded = forwardedVercel ?? header(req, "x-forwarded-for");
+  const clientIp = forwarded?.split(",")[0]?.trim();
+
+  if (clientIp) {
+    if (clientIp.length <= 64) {
+      return clientIp;
+    }
+  }
   return "unknown";
 }
 
 function validCpf(cpf: string): boolean {
-  if (!/^\d{11}$/.test(cpf) \vert{}\vert{} /^([0-9])\1{10}$/.test(cpf)) return false;
+  if (!/^\d{11}$/.test(cpf)) return false;
+  if (/^([0-9])\1{10}$/.test(cpf)) return false;
 
   for (let position = 9; position < 11; position += 1) {
     let sum = 0;
@@ -75,7 +90,9 @@ function validCpf(cpf: string): boolean {
 }
 
 function normalizeInput(value: unknown): SignupInput | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  if (typeof value !== "object") return null;
+  if (value === null) return null;
+  if (Array.isArray(value)) return null;
 
   const record = value as Record<string, unknown>;
   const name = typeof record.name === "string"
@@ -85,8 +102,10 @@ function normalizeInput(value: unknown): SignupInput | null {
   const cpf = typeof record.cpf === "string" ? record.cpf.replace(/\D/g, "") : "";
   const phone = typeof record.phone === "string" ? record.phone.replace(/\D/g, "") : "";
 
-  if (name.length < 2 || name.length > 120) return null;
-  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return null;
+  if (name.length < 2) return null;
+  if (name.length > 120) return null;
+  if (email.length > 254) return null;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return null;
   if (!validCpf(cpf)) return null;
   if (!/^\d{10,11}$/.test(phone)) return null;
 
@@ -95,7 +114,9 @@ function normalizeInput(value: unknown): SignupInput | null {
 
 function parseBody(req: ApiRequest): unknown | null {
   let body = req.body;
-  if (Buffer.isBuffer(body)) body = body.toString("utf8");
+  if (Buffer.isBuffer(body)) {
+    body = body.toString("utf8");
+  }
 
   if (typeof body === "string") {
     if (Buffer.byteLength(body, "utf8") > MAX_BODY_BYTES) return null;
@@ -106,10 +127,14 @@ function parseBody(req: ApiRequest): unknown | null {
     }
   }
 
-  if (typeof body !== "object" || body === null || Array.isArray(body)) return null;
+  if (typeof body !== "object") return null;
+  if (body === null) return null;
+  if (Array.isArray(body)) return null;
+
   try {
     const encoded = JSON.stringify(body);
-    if (!encoded || Buffer.byteLength(encoded, "utf8") > MAX_BODY_BYTES) return null;
+    if (!encoded) return null;
+    if (Buffer.byteLength(encoded, "utf8") > MAX_BODY_BYTES) return null;
   } catch {
     return null;
   }
@@ -132,16 +157,20 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     return;
   }
 
-  const contentType = header(req, "content-type")?.split(";")[0].trim().toLowerCase();
+  const contentTypeHeader = header(req, "content-type");
+  const contentType = contentTypeHeader ? contentTypeHeader.split(";")[0].trim().toLowerCase() : "";
   if (contentType !== "application/json") {
     reply(res, 415, { ok: false, message: "Formato de envio inválido." });
     return;
   }
 
-  const contentLength = Number(header(req, "content-length") ?? 0);
-  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
-    reply(res, 413, { ok: false, message: "Envio muito grande." });
-    return;
+  const contentLengthHeader = header(req, "content-length");
+  const contentLength = Number(contentLengthHeader ?? 0);
+  if (Number.isFinite(contentLength)) {
+    if (contentLength > MAX_BODY_BYTES) {
+      reply(res, 413, { ok: false, message: "Envio muito grande." });
+      return;
+    }
   }
 
   const databaseUrl = process.env.DATABASE_URL?.trim();
@@ -149,7 +178,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
   const rateLimitSecret = Buffer.byteLength(configuredRateSecret, "utf8") >= 32
     ? configuredRateSecret
     : databaseUrl ?? "";
-  if (!databaseUrl || Buffer.byteLength(rateLimitSecret, "utf8") < 32) {
+
+  if (!databaseUrl) {
+    reply(res, 503, { ok: false, message: "O envio não está disponível no momento. Tente novamente mais tarde." });
+    return;
+  }
+  if (Buffer.byteLength(rateLimitSecret, "utf8") < 32) {
     reply(res, 503, { ok: false, message: "O envio não está disponível no momento. Tente novamente mais tarde." });
     return;
   }
