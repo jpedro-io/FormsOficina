@@ -212,7 +212,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     }
 
     reply(res, 201, { ok: true });
- } catch (err: unknown) {
+  } catch (err: unknown) {
     const errorDetails = err instanceof Error ? err.message : String(err);
     reply(res, 500, { ok: false, message: `Erro detalhado: ${errorDetails}` });
   }
+}
