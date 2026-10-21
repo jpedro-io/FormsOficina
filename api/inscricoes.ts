@@ -61,7 +61,7 @@ function clientAddress(req: ApiRequest): string {
 }
 
 function validCpf(cpf: string): boolean {
-  if (!/^\d{11}$/.test(cpf) || /^([0-9])\1{10}$/.test(cpf)) return false;
+  if (!/^\d{11}$/.test(cpf) \vert{}\vert{} /^([0-9])\1{10}$/.test(cpf)) return false;
 
   for (let position = 9; position < 11; position += 1) {
     let sum = 0;
@@ -85,17 +85,14 @@ function normalizeInput(value: unknown): SignupInput | null {
   const email = typeof record.email === "string" ? record.email.trim().toLowerCase() : "";
   const cpf = typeof record.cpf === "string" ? record.cpf.replace(/\D/g, "") : "";
   const phone = typeof record.phone === "string" ? record.phone.replace(/\D/g, "") : "";
-  const ratingText = typeof record.rating === "number" || typeof record.rating === "string"
-    ? String(record.rating).trim()
-    : "";
 
   if (name.length < 2 || name.length > 120) return null;
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return null;
   if (!validCpf(cpf)) return null;
   if (!/^\d{10,11}$/.test(phone)) return null;
-  if (!/^[0-5]$/.test(ratingText)) return null;
 
-  return { name, email, cpf, phone, rating: Number(ratingText) };
+  // Forçamos o rating sempre como 5, já que a parte visual foi tirada do front-end
+  return { name, email, cpf, phone, rating: 5 };
 }
 
 function parseBody(req: ApiRequest): unknown | null {
@@ -151,7 +148,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
 
   const databaseUrl = process.env.DATABASE_URL?.trim();
   const configuredRateSecret = process.env.RATE_LIMIT_SECRET?.trim() ?? "";
-  // The private database URL is a server-side secret and is a safe fallback HMAC key for local and production rate limiting.
   const rateLimitSecret = Buffer.byteLength(configuredRateSecret, "utf8") >= 32
     ? configuredRateSecret
     : databaseUrl ?? "";
@@ -178,13 +174,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
       VALUES (${bucketHash}, now(), 1)
       ON CONFLICT (bucket_hash) DO UPDATE
       SET request_count = CASE
-            WHEN current_window.window_started_at <= now() - interval '1 minute' THEN 1
-            ELSE LEAST(current_window.request_count + 1, ${MAX_WINDOW_COUNT})
-          END,
-          window_started_at = CASE
-            WHEN current_window.window_started_at <= now() - interval '1 minute' THEN now()
-            ELSE current_window.window_started_at
-          END
+          WHEN current_window.window_started_at <= now() - interval '1 minute' THEN 1
+          ELSE LEAST(current_window.request_count + 1, ${MAX_WINDOW_COUNT})
+        END,
+        window_started_at = CASE
+          WHEN current_window.window_started_at <= now() - interval '1 minute' THEN now()
+          ELSE current_window.window_started_at
+        END
       RETURNING request_count
     `;
 
@@ -219,7 +215,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
 
     reply(res, 201, { ok: true });
   } catch {
-    // Raw database errors can contain connection details or submitted values, so they stay server-side.
     reply(res, 500, { ok: false, message: "Erro :( Não foi possível enviar agora. Tente novamente." });
   }
 }
