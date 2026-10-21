@@ -91,7 +91,6 @@ function normalizeInput(value: unknown): SignupInput | null {
   if (!validCpf(cpf)) return null;
   if (!/^\d{10,11}$/.test(phone)) return null;
 
-  // Forçamos o rating sempre como 5, já que a parte visual foi tirada do front-end
   return { name, email, cpf, phone, rating: 5 };
 }
 
