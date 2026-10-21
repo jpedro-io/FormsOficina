@@ -6,7 +6,6 @@ const submitButton = document.querySelector("#submit-button");
 const buttonText = submitButton.querySelector("span:first-child");
 const cpfInput = document.querySelector("#cpf");
 const phoneInput = document.querySelector("#phone");
-const ratingField = document.querySelector("#rating-field");
 const setupNote = document.querySelector("#setup-note");
 let submissionReady = false;
 
@@ -136,14 +135,6 @@ form.querySelectorAll(".text-input").forEach((input) => {
   });
 });
 
-form.querySelectorAll('input[name="rating"]').forEach((input) => {
-  input.addEventListener("change", () => {
-    ratingField.classList.remove("is-invalid");
-    form.querySelectorAll('input[name="rating"]').forEach((radio) => radio.setAttribute("aria-invalid", "false"));
-    if (form.checkValidity()) clearFeedback();
-  });
-});
-
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   clearFeedback();
@@ -152,20 +143,16 @@ form.addEventListener("submit", async (event) => {
   textInputs.forEach(refreshCustomValidity);
 
   const invalidInputs = textInputs.filter((input) => !input.validity.valid);
-  const ratingInvalid = !form.querySelector('input[name="rating"]:checked');
 
   textInputs.forEach((input) => {
     const invalid = !input.validity.valid;
     input.classList.toggle("is-invalid", invalid);
     input.setAttribute("aria-invalid", String(invalid));
   });
-  form.querySelectorAll('input[name="rating"]').forEach((radio) => radio.setAttribute("aria-invalid", String(ratingInvalid)));
-  ratingField.classList.toggle("is-invalid", ratingInvalid);
 
-  if (invalidInputs.length > 0 || ratingInvalid) {
+  if (invalidInputs.length > 0) {
     showFeedback("Erro :( Confira os campos destacados e tente novamente.", "error");
-    const firstInvalid = invalidInputs[0] || form.querySelector('input[name="rating"]');
-    firstInvalid.focus();
+    invalidInputs[0].focus();
     return;
   }
 
@@ -174,7 +161,12 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  const payload = Object.fromEntries(new FormData(form).entries());
+  // Monta os dados do form e injeta o rating como 5 automaticamente
+  const payload = {
+    ...Object.fromEntries(new FormData(form).entries()),
+    rating: 5
+  };
+
   submitButton.disabled = true;
   submitButton.setAttribute("aria-busy", "true");
 
@@ -200,8 +192,6 @@ form.addEventListener("submit", async (event) => {
         input.removeAttribute("aria-invalid");
         input.setCustomValidity("");
       });
-      ratingField.classList.remove("is-invalid");
-      form.querySelectorAll('input[name="rating"]').forEach((radio) => radio.removeAttribute("aria-invalid"));
       showFeedback("Inscrição enviada com sucesso.", "success");
       buttonText.textContent = "Inscrição enviada";
       completed = true;
