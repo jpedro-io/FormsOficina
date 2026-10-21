@@ -40,7 +40,7 @@
         <div class="panel-heading">
           <p class="panel-eyebrow">Inscrição</p>
           <h2 id="form-title">Preencha seus dados</h2>
-          <p>Informe seus dados e avalie a oficina.</p>
+          <p>Informe seus dados para realizar a inscrição.</p>
         </div>
 
         <form class="registration-form" id="registration-form" action="/api/inscricoes" method="post" novalidate>
@@ -67,42 +67,6 @@
               <small class="field-hint" id="phone-hint">Formato: (00) 00000-0000</small>
             </div>
           </div>
-
-          <fieldset class="rating-field" id="rating-field">
-            <legend>Avaliação da oficina <span class="required-mark" aria-hidden="true">*</span><span class="sr-only"> (obrigatória)</span>, de 0 a 5</legend>
-            <div class="rating-options">
-              <label class="rating-choice">
-                <input type="radio" name="rating" value="0" required>
-                <span class="rating-number" aria-hidden="true">0</span>
-                <span class="sr-only">Nota 0</span>
-              </label>
-              <label class="rating-choice">
-                <input type="radio" name="rating" value="1" required>
-                <span class="rating-number" aria-hidden="true">1</span>
-                <span class="sr-only">Nota 1</span>
-              </label>
-              <label class="rating-choice">
-                <input type="radio" name="rating" value="2" required>
-                <span class="rating-number" aria-hidden="true">2</span>
-                <span class="sr-only">Nota 2</span>
-              </label>
-              <label class="rating-choice">
-                <input type="radio" name="rating" value="3" required>
-                <span class="rating-number" aria-hidden="true">3</span>
-                <span class="sr-only">Nota 3</span>
-              </label>
-              <label class="rating-choice">
-                <input type="radio" name="rating" value="4" required>
-                <span class="rating-number" aria-hidden="true">4</span>
-                <span class="sr-only">Nota 4</span>
-              </label>
-              <label class="rating-choice">
-                <input type="radio" name="rating" value="5" required>
-                <span class="rating-number" aria-hidden="true">5</span>
-                <span class="sr-only">Nota 5</span>
-              </label>
-            </div>
-          </fieldset>
 
           <p class="form-feedback" id="form-feedback" role="status" aria-live="polite" hidden></p>
           <p class="setup-note" id="setup-note" role="status" aria-live="polite">O envio está indisponível no momento. Nenhum dado foi enviado.</p>
