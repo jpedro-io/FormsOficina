@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS public.workshop_signups (
   email text NOT NULL CHECK (char_length(email) BETWEEN 3 AND 254),
   cpf text NOT NULL UNIQUE CHECK (cpf ~ '^[0-9]{11}$'),
   phone text NOT NULL CHECK (phone ~ '^[0-9]{10,11}$'),
-  rating smallint NOT NULL CHECK (rating BETWEEN 0 AND 5),
+  rating smallint NOT NULL DEFAULT 5 CHECK (rating BETWEEN 0 AND 5),
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
