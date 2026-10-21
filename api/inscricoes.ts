@@ -13,7 +13,6 @@ type SignupInput = {
   email: string;
   cpf: string;
   phone: string;
-  rating: number;
 };
 
 const MAX_BODY_BYTES = 5_000;
@@ -91,7 +90,7 @@ function normalizeInput(value: unknown): SignupInput | null {
   if (!validCpf(cpf)) return null;
   if (!/^\d{10,11}$/.test(phone)) return null;
 
-  return { name, email, cpf, phone, rating: 5 };
+  return { name, email, cpf, phone };
 }
 
 function parseBody(req: ApiRequest): unknown | null {
@@ -201,8 +200,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     }
 
     const insertedRows = await sql`
-      INSERT INTO public.workshop_signups (name, email, cpf, phone, rating)
-      VALUES (${input.name}, ${input.email}, ${input.cpf}, ${input.phone}, ${input.rating})
+      INSERT INTO public.workshop_signups (name, email, cpf, phone)
+      VALUES (${input.name}, ${input.email}, ${input.cpf}, ${input.phone})
       ON CONFLICT (cpf) DO NOTHING
       RETURNING id
     `;
@@ -213,8 +212,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     }
 
     reply(res, 201, { ok: true });
-  } catch (err: unknown) {
-    const errorDetails = err instanceof Error ? err.message : String(err);
-    reply(res, 500, { ok: false, message: `Erro no banco: ${errorDetails}` });
+  } catch {
+    reply(res, 500, { ok: false, message: "Erro :( Não foi possível enviar agora. Tente novamente." });
   }
 }
